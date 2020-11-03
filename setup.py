@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup, Command, find_packages
+from setuptools import setup, find_packages
 import unittest
 
 
@@ -15,6 +15,7 @@ setup(name='pyflection',
       include_package_data=True,
       packages=find_packages(),
       test_suite="setup.project_test_suite",
-      install_requires=['pyvis'],
-      scripts=['bin/pyflection'],
+      install_requires=[
+          'pyvis',
+      ],
       python_requires='>3.8.0')
