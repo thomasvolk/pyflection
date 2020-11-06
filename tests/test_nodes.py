@@ -28,12 +28,3 @@ class ClassScannerTest(unittest.TestCase):
             {'spec.CustomerService', 'spec.SMSService', 'spec.EmailService'}
         )
 
-    def test_pyvis(self):
-        from pyvis import network as net
-        n = net.Network(notebook=True, directed=True)
-        for node in self.node_provider.nodes():
-            n.add_node(node.id, label=node.name)
-        for node in self.node_provider.nodes():
-            for r in node.relations:
-                n.add_edge(source=node.id, to=r)
-        n.show("test_pyvis.html")
