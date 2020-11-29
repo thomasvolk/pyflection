@@ -2,6 +2,7 @@ import inspect
 import importlib
 import re
 from pyflection import Node, NodeProvider
+import sys
 
 
 def get_path(cls):
@@ -18,12 +19,14 @@ def get_class(path):
     return getattr(importlib.import_module(module), class_name)
 
 
-class ClassNodeProvider(NodeProvider):
-    def __init__(self, package, regexp=".+"):
+class ReflectionNodeProvider(NodeProvider):
+    def __init__(self, package, regexp):
         self.regexp = re.compile(regexp)
         self.package = package
 
-    def get_relations(self, cls):
+
+class ClassNodeProvider(ReflectionNodeProvider):
+    def get_relations_from_class(self, cls):
         relations = set()
         relations.update(
             [a.__class__ for a in cls.__dict__.values()
@@ -46,9 +49,41 @@ class ClassNodeProvider(NodeProvider):
             Node(
                 id=get_path(cls),
                 name=cls.__name__,
-                relations={get_path(c) for c in self.get_relations(cls)}
+                relations={get_path(c) for c in self.get_relations_from_class(cls)}
             )
             for cls in self.find_classes()
         ]
 
 
+class TracingClassNodeProvider(ReflectionNodeProvider):
+    def __init__(self, package, regexp):
+        super(TracingClassNodeProvider, self).__init__(package, regexp)
+        self.objects = []
+
+    def get_relations_from_object(self, obj):
+        relations = set()
+        relations.update([
+            m.__class__ for m in obj.__dict__.values()
+            if isinstance(m, object) and self.regexp.match(m.__class__.__name__)
+        ])
+        return relations
+
+    def __trace(self, frame, msg, arg):
+        local_objects = [o for o in frame.f_locals.values() if isinstance(o, object)]
+        self.objects.extend([o for o in local_objects if self.regexp.match(o.__class__.__name__)])
+
+    def tracing_on(self):
+        sys.settrace(self.__trace)
+
+    def tracing_off(self):
+        sys.settrace(None)
+
+    def nodes(self):
+        return [
+            Node(
+                id=get_path(o.__class__),
+                name=o.__class__.__name__,
+                relations={get_path(c) for c in self.get_relations_from_object(o)}
+            )
+            for o in self.objects
+        ]

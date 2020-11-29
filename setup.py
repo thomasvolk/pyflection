@@ -16,6 +16,6 @@ setup(name='pyflection',
       packages=find_packages(),
       test_suite="setup.project_test_suite",
       install_requires=[
-          'pyvis',
+          'networkx>=2.5',
       ],
       python_requires='>3.8.0')

@@ -53,6 +53,9 @@ class NotificationService:
     email_service = EmailService()
     sms_service = SMSService()
 
+    def __init__(self):
+        self.configuration = ConfigurationService()
+
     def send(self, notification: Notification):
         customer = self.customer_service.get_customer(notification.customer_id)
         self.email_service.send_email(customer.email, notification.message)
