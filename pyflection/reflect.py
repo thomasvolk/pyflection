@@ -1,7 +1,7 @@
 import inspect
 import importlib
 import re
-from pyflection import Node, NodeProvider
+from pyflection import Node, NodeProvider, merge_nodes
 import sys
 
 
@@ -55,7 +55,7 @@ class ClassNodeProvider(ReflectionNodeProvider):
         ]
 
 
-class TracingClassNodeProvider(ReflectionNodeProvider):
+class TracingClassNodeProvider(ClassNodeProvider):
     def __init__(self, package, regexp):
         super(TracingClassNodeProvider, self).__init__(package, regexp)
         self.objects = []
@@ -68,7 +68,7 @@ class TracingClassNodeProvider(ReflectionNodeProvider):
         ])
         return relations
 
-    def __trace(self, frame, msg, arg):
+    def __trace(self, frame, _msg, _arg):
         local_objects = [o for o in frame.f_locals.values() if isinstance(o, object)]
         self.objects.extend([o for o in local_objects if self.regexp.match(o.__class__.__name__)])
 
@@ -79,7 +79,8 @@ class TracingClassNodeProvider(ReflectionNodeProvider):
         sys.settrace(None)
 
     def nodes(self):
-        return [
+        class_nodes = super(TracingClassNodeProvider, self).nodes()
+        trace_nodes = [
             Node(
                 id=get_path(o.__class__),
                 name=o.__class__.__name__,
@@ -87,3 +88,4 @@ class TracingClassNodeProvider(ReflectionNodeProvider):
             )
             for o in self.objects
         ]
+        return merge_nodes(class_nodes, trace_nodes)

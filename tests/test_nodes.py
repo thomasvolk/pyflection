@@ -1,46 +1,16 @@
 import unittest
-from pyflection.reflect import ClassNodeProvider, TracingClassNodeProvider
-import spec
+from pyflection import merge_nodes, Node
 
 
 class ClassScannerTest(unittest.TestCase):
-    PATTERN = ".+Service$|.+Broker$"
-    node_provider = ClassNodeProvider(spec, PATTERN)
+    def test_merge_nodes(self):
+        one_node_a = [Node(id="node", name="node", relations={"a", "b"})]
+        one_node_b = [Node(id="node", name="node", relations={"c", "b"})]
+        two_nodes = [Node(id="node", name="node", relations={"c", "d"}),
+                     Node(id="node2", name="node2", relations={"c", "b"})]
 
-    def test_class_list(self):
-        class_names = [c.__name__ for c in self.node_provider.find_classes()]
-        class_names.sort()
-        self.assertEqual(
-            ['ConfigurationService',
-             'CustomerService',
-             'EmailService',
-             'NotificationBroker',
-             'NotificationService',
-             'OrderService',
-             'SMSService'],
-            class_names
-        )
-
-    def test_relations(self):
-        nodes = self.node_provider.nodes()
-        self.assertEqual(7, len(nodes))
-        notification_service_node = nodes[4]
-        self.assertEqual(
-            notification_service_node.relations,
-            {'spec.CustomerService', 'spec.SMSService', 'spec.EmailService'}
-        )
-
-    def test_trace(self):
-        node_provider = TracingClassNodeProvider(spec, self.PATTERN)
-        node_provider.tracing_on()
-        # trace the constructor call
-        spec.NotificationService()
-        # done
-        node_provider.tracing_off()
-        nodes = node_provider.nodes()
-        self.assertEqual(1, len(nodes))
-        notification_service_node = nodes[0]
-        self.assertEqual(
-            notification_service_node.relations,
-            {'spec.ConfigurationService'}
-        )
+        merged_noes = merge_nodes(one_node_a, one_node_b, two_nodes)
+        self.assertEqual([
+            Node(id="node", name="node", relations={"a", "b", "c", "d"}),
+            Node(id="node2", name="node2", relations={"c", "b"})
+        ], merged_noes)
