@@ -1,5 +1,5 @@
 import unittest
-from pyflection.reflect import ClassNodeProvider
+from pyflection.reflect import ClassNodeProvider, TracingClassNodeProvider
 import spec
 
 
@@ -22,9 +22,25 @@ class ClassScannerTest(unittest.TestCase):
         )
 
     def test_relations(self):
-        notification_service = self.node_provider.nodes()[4]
+        nodes = self.node_provider.nodes()
+        self.assertEqual(7, len(nodes))
+        notification_service_node = nodes[4]
         self.assertEqual(
-            notification_service.relations,
+            notification_service_node.relations,
             {'spec.CustomerService', 'spec.SMSService', 'spec.EmailService'}
         )
 
+    def test_trace(self):
+        node_provider = TracingClassNodeProvider(spec, self.PATTERN)
+        node_provider.tracing_on()
+        # trace the constructor call
+        spec.NotificationService()
+        # done
+        node_provider.tracing_off()
+        nodes = node_provider.nodes()
+        self.assertEqual(1, len(nodes))
+        notification_service_node = nodes[0]
+        self.assertEqual(
+            notification_service_node.relations,
+            {'spec.ConfigurationService'}
+        )

@@ -1,5 +1,5 @@
 import unittest
-from pyflection.reflect import TracingClassNodeProvider, ClassNodeProvider, get_path, get_class
+from pyflection.reflect import ClassNodeProvider, get_path, get_class
 import spec
 
 
@@ -25,10 +25,3 @@ class ClassScannerTest(unittest.TestCase):
 
     def test_get_class(self):
         self.assertEqual(ClassNodeProvider, get_class('pyflection.reflect.ClassNodeProvider'))
-
-    def test_trace(self):
-        node_provider = TracingClassNodeProvider(spec, self.PATTERN)
-        node_provider.tracing_on()
-        spec.NotificationService()
-        node_provider.tracing_off()
-        node_provider.nodes()
