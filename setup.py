@@ -18,4 +18,7 @@ setup(name='pyflection',
       install_requires=[
           'networkx>=2.5',
       ],
+      extras_require={
+        'tests': ['matplotlib>=3.3.3'],
+      },
       python_requires='>3.8.0')
