@@ -15,12 +15,15 @@ class ExportTest(unittest.TestCase):
         e = NetworkXExport()
         graph = e.export(nodes)
         self.assertEqual(7, len(graph.nodes))
+
         ax = plt.subplot(111)
         ax.set_title('test_networkx', fontsize=10)
 
+        labels = { n.id: n.name for n in nodes}
         pos = nx.spring_layout(graph)
         nx.draw(graph, pos, node_size=9000, node_color='steelblue', node_shape='h',
-                font_color='black', with_labels=True, font_size=6, font_weight='bold')
+                font_color='black', with_labels=True, font_size=6, font_weight='bold',
+                labels=labels)
 
         plt.tight_layout()
         plt.show()
